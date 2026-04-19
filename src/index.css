@@ -2,95 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ==========================================================
+   SUPER SENTAIS — Design System
+   Tokusatsu pop + JRPG mobile + neon urbano de Niterói
+   All colors HSL.
+   ========================================================== */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Night sky base */
+    --background: 230 45% 7%;
+    --foreground: 40 30% 96%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 230 40% 11%;
+    --card-foreground: 40 30% 96%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 230 45% 9%;
+    --popover-foreground: 40 30% 96%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Sentai Rubro = primary brand */
+    --primary: 354 86% 54%;
+    --primary-foreground: 40 30% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Sentai Dourado */
+    --secondary: 44 96% 56%;
+    --secondary-foreground: 230 45% 10%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 230 30% 18%;
+    --muted-foreground: 230 15% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Sentai Rosa = accent */
+    --accent: 330 90% 62%;
+    --accent-foreground: 40 30% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 354 86% 54%;
+    --destructive-foreground: 40 30% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 230 30% 22%;
+    --input: 230 30% 18%;
+    --ring: 354 86% 54%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
-    --sidebar-background: 0 0% 98%;
+    /* Sentai team colors */
+    --sentai-red: 354 86% 54%;
+    --sentai-yellow: 44 96% 56%;
+    --sentai-green: 152 72% 46%;
+    --sentai-black: 230 20% 14%;
+    --sentai-pink: 330 90% 62%;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Niterói neon urbano */
+    --neon-cyan: 188 95% 60%;
+    --neon-violet: 268 85% 65%;
+    --niteroi-bay: 215 80% 38%;
+    --sunset-gold: 32 96% 60%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Gradients */
+    --gradient-hero: radial-gradient(ellipse at top, hsl(268 85% 25% / 0.85), hsl(230 45% 7%) 65%);
+    --gradient-rubro: linear-gradient(135deg, hsl(354 86% 54%), hsl(14 90% 56%));
+    --gradient-dourado: linear-gradient(135deg, hsl(44 96% 56%), hsl(32 96% 50%));
+    --gradient-esmeralda: linear-gradient(135deg, hsl(152 72% 46%), hsl(180 70% 42%));
+    --gradient-onix: linear-gradient(135deg, hsl(230 25% 18%), hsl(230 30% 8%));
+    --gradient-rosa: linear-gradient(135deg, hsl(330 90% 62%), hsl(300 80% 58%));
+    --gradient-sky: linear-gradient(180deg, hsl(230 50% 9%) 0%, hsl(268 50% 14%) 50%, hsl(330 60% 18%) 100%);
+    --gradient-bay: linear-gradient(180deg, hsl(215 80% 22%) 0%, hsl(230 60% 10%) 100%);
 
-    --sidebar-primary-foreground: 0 0% 98%;
+    /* Shadows / glows */
+    --glow-red: 0 0 32px hsl(354 86% 54% / 0.55), 0 0 8px hsl(354 86% 54% / 0.7);
+    --glow-yellow: 0 0 32px hsl(44 96% 56% / 0.55);
+    --glow-green: 0 0 32px hsl(152 72% 46% / 0.55);
+    --glow-pink: 0 0 32px hsl(330 90% 62% / 0.6);
+    --glow-cyan: 0 0 24px hsl(188 95% 60% / 0.5);
+    --shadow-card: 0 18px 50px -12px hsl(230 60% 2% / 0.7);
+    --shadow-deep: 0 30px 80px -20px hsl(230 80% 2% / 0.9);
 
-    --sidebar-accent: 240 4.8% 95.9%;
+    /* Motion */
+    --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar (unused but kept) */
+    --sidebar-background: 230 45% 7%;
+    --sidebar-foreground: 40 30% 96%;
+    --sidebar-primary: 354 86% 54%;
+    --sidebar-primary-foreground: 40 30% 98%;
+    --sidebar-accent: 230 30% 18%;
+    --sidebar-accent-foreground: 40 30% 96%;
+    --sidebar-border: 230 30% 22%;
+    --sidebar-ring: 354 86% 54%;
   }
 }
 
@@ -98,8 +96,84 @@ All colors MUST be HSL.
   * {
     @apply border-border;
   }
-
-  body {
-    @apply bg-background text-foreground;
+  html, body, #root {
+    height: 100%;
   }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Rajdhani', system-ui, sans-serif;
+    background-image: var(--gradient-sky);
+    background-attachment: fixed;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, .display {
+    font-family: 'Bebas Neue', 'Rajdhani', sans-serif;
+    letter-spacing: 0.02em;
+  }
+}
+
+@layer components {
+  .text-glow-red { text-shadow: 0 0 18px hsl(var(--sentai-red) / 0.85), 0 0 4px hsl(var(--sentai-red)); }
+  .text-glow-pink { text-shadow: 0 0 18px hsl(var(--sentai-pink) / 0.8); }
+  .text-glow-cyan { text-shadow: 0 0 18px hsl(var(--neon-cyan) / 0.8); }
+  .text-glow-gold { text-shadow: 0 0 16px hsl(var(--sentai-yellow) / 0.8); }
+
+  .panel {
+    @apply rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm;
+    box-shadow: var(--shadow-card);
+  }
+  .panel-glow-red { box-shadow: var(--shadow-card), var(--glow-red); }
+  .panel-glow-pink { box-shadow: var(--shadow-card), var(--glow-pink); }
+
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 2px,
+      hsl(0 0% 100% / 0.025) 2px,
+      hsl(0 0% 100% / 0.025) 3px
+    );
+  }
+
+  .grid-bg {
+    background-image:
+      linear-gradient(hsl(var(--neon-cyan) / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--neon-cyan) / 0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+}
+
+@layer utilities {
+  .clip-chevron {
+    clip-path: polygon(8% 0, 100% 0, 92% 100%, 0% 100%);
+  }
+}
+
+/* Keyframes */
+@keyframes pulse-ring {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.18); opacity: 0.35; }
+}
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+@keyframes flash {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(2.2) saturate(1.5); }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scan {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(100%); }
 }
