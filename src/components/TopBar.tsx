@@ -1,6 +1,7 @@
 import teamImage from "@/assets/sentai-team.png";
 
-export const TopBar = ({ subtitle }: { subtitle: string }) => {
+export const TopBar = ({ subtitle, stars = 0 }: { subtitle: string; stars?: number }) => {
+  const formatted = stars.toLocaleString("pt-BR");
   return (
     <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-lg">
       <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
@@ -13,8 +14,12 @@ export const TopBar = ({ subtitle }: { subtitle: string }) => {
           </h1>
           <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="rounded-md border border-secondary/40 bg-secondary/10 px-2 py-1 text-xs font-bold text-secondary">
-          ⭐ 1.240
+        <div
+          className="flex items-center gap-1 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-1 text-xs font-bold tabular-nums text-secondary"
+          aria-label={`${formatted} estrelas`}
+        >
+          <span aria-hidden>⭐</span>
+          <span>{formatted}</span>
         </div>
       </div>
     </header>
