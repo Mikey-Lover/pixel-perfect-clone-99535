@@ -1,4 +1,5 @@
 import { SENTAIS, type SentaiId } from "@/data/sentais";
+import { SENTAI_IMAGES } from "@/data/sentai-images";
 import { cn } from "@/lib/utils";
 
 const gradientById: Record<SentaiId, string> = {
@@ -40,9 +41,16 @@ export const TopBar = ({ subtitle, stars = 0, heroId, onAvatarClick }: Props) =>
           aria-label={hero ? `Trocar líder (atual: ${hero.name})` : "Escolher líder"}
         >
           <div className="absolute inset-0 grid-bg opacity-25" />
-          <span className="relative text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
-            {hero ? hero.pose : "★"}
-          </span>
+          {hero ? (
+            <img
+              src={SENTAI_IMAGES[hero.id]}
+              alt=""
+              aria-hidden
+              className="relative h-[150%] w-auto object-contain object-bottom drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+            />
+          ) : (
+            <span className="relative text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">★</span>
+          )}
         </button>
 
         <div className="flex-1 min-w-0">

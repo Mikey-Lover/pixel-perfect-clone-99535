@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SENTAIS, type Sentai, type SentaiId } from "@/data/sentais";
+import { SENTAI_IMAGES } from "@/data/sentai-images";
 import { cn } from "@/lib/utils";
 import { Heart, Sword, Shield, Zap, Sparkles, Crown, Check } from "lucide-react";
 
@@ -64,10 +65,16 @@ export const HeroSelectModal = ({ onConfirm }: Props) => {
           </div>
           <div className="relative px-5 py-6">
             <div className="flex items-center gap-3">
-              <span className="text-6xl drop-shadow-[0_4px_12px_rgba(0,0,0,0.6)] animate-float-y">
-                {hero.pose}
-              </span>
-              <div>
+              <div className="relative h-32 w-24 shrink-0">
+                <div className="absolute inset-0 rounded-2xl bg-background/25 backdrop-blur-sm" />
+                <img
+                  src={SENTAI_IMAGES[hero.id]}
+                  alt={`${hero.name} em pose de combate`}
+                  className="relative h-full w-full object-contain drop-shadow-[0_8px_18px_rgba(0,0,0,0.6)] animate-float-y"
+                  loading="eager"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-background/70">
                   {hero.codename}
                 </p>
@@ -75,6 +82,9 @@ export const HeroSelectModal = ({ onConfirm }: Props) => {
                 <p className="mt-1 text-[11px] font-semibold uppercase tracking-widest text-background/80">
                   {hero.role}
                 </p>
+                <span className="mt-1 inline-block text-2xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">
+                  {hero.pose}
+                </span>
               </div>
             </div>
 
@@ -125,7 +135,7 @@ export const HeroSelectModal = ({ onConfirm }: Props) => {
                   key={s.id}
                   onClick={() => setPicked(s.id)}
                   className={cn(
-                    "group relative flex aspect-square flex-col items-center justify-center rounded-2xl border-2 transition-all active:scale-95",
+                    "group relative flex aspect-square items-end justify-center overflow-hidden rounded-2xl border-2 transition-all active:scale-95",
                     gradientById[s.id],
                     isPicked
                       ? "border-foreground scale-105 " + glowById[s.id]
@@ -134,7 +144,13 @@ export const HeroSelectModal = ({ onConfirm }: Props) => {
                   aria-pressed={isPicked}
                   aria-label={`Selecionar ${s.name}`}
                 >
-                  <span className="text-3xl drop-shadow-[0_2px_6px_rgba(0,0,0,0.5)]">{s.pose}</span>
+                  <img
+                    src={SENTAI_IMAGES[s.id]}
+                    alt=""
+                    aria-hidden
+                    className="h-[125%] w-auto object-contain drop-shadow-[0_3px_6px_rgba(0,0,0,0.55)]"
+                    loading="lazy"
+                  />
                   {isPicked && (
                     <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-foreground text-background ring-2 ring-background">
                       <Check className="h-3 w-3" strokeWidth={3} />

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SENTAIS, type Sentai, type SentaiId } from "@/data/sentais";
+import { SENTAI_IMAGES } from "@/data/sentai-images";
 import enemySlime from "@/assets/enemy-thug.png";
 import bossKaiju from "@/assets/boss-kaiju.png";
 import { cn } from "@/lib/utils";
@@ -417,7 +418,14 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
                 hitId === `ally-${t.id}` && "animate-shake"
               )}
             >
-              <div className="text-2xl leading-none">{t.pose}</div>
+              <div className="relative mx-auto h-12 w-full overflow-hidden">
+                <img
+                  src={SENTAI_IMAGES[t.id]}
+                  alt=""
+                  aria-hidden
+                  className="absolute inset-x-0 bottom-0 mx-auto h-[160%] w-auto object-contain object-bottom drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                />
+              </div>
               <span className="absolute right-1 top-1 rounded-sm bg-background/70 px-1 text-[8px] font-black tabular-nums text-foreground">
                 Lv{t.level}
               </span>
