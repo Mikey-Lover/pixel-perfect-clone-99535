@@ -1,5 +1,13 @@
 export type StageType = "battle" | "arena" | "event" | "boss";
 
+export interface StageEnemy {
+  id: string;
+  name: string;
+  hp: number;
+  atk: number;
+  isBoss?: boolean;
+}
+
 export interface Stage {
   id: number;
   name: string;
@@ -10,6 +18,7 @@ export interface Stage {
   // percent positions on the map background
   x: number;
   y: number;
+  enemies: StageEnemy[];
 }
 
 export const ROUTE: Stage[] = [
