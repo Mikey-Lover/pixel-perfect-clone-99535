@@ -3,7 +3,8 @@ import { SENTAIS, type Sentai } from "@/data/sentais";
 import enemySlime from "@/assets/enemy-thug.png";
 import bossKaiju from "@/assets/boss-kaiju.png";
 import { cn } from "@/lib/utils";
-import { Heart, Sword, Sparkles, Trophy, RotateCcw } from "lucide-react";
+import { Heart, Sword, Sparkles, Trophy, RotateCcw, Map as MapIcon } from "lucide-react";
+import type { Stage, StageEnemy } from "@/data/route";
 
 interface Enemy {
   id: string;
@@ -19,29 +20,6 @@ interface Combatant extends Sentai {
   curHp: number;
 }
 
-const WAVES: Enemy[][] = [
-  [
-    { id: "e1", name: "Slime do Beco", hp: 40, maxHp: 40, atk: 10, sprite: enemySlime },
-    { id: "e2", name: "Slime Rosado", hp: 35, maxHp: 35, atk: 8, sprite: enemySlime },
-  ],
-  [
-    { id: "e3", name: "Slime de Elite", hp: 60, maxHp: 60, atk: 14, sprite: enemySlime },
-    { id: "e4", name: "Slime Rajado", hp: 55, maxHp: 55, atk: 12, sprite: enemySlime },
-    { id: "e5", name: "Slime Veloz", hp: 45, maxHp: 45, atk: 11, sprite: enemySlime },
-  ],
-  [
-    {
-      id: "boss",
-      name: "Caranguejo Místico",
-      hp: 220,
-      maxHp: 220,
-      atk: 22,
-      sprite: bossKaiju,
-      isBoss: true,
-    },
-  ],
-];
-
 type LogEntry = { id: number; text: string; tone: "ally" | "enemy" | "info" | "win" };
 
 const colorClass: Record<string, string> = {
@@ -52,24 +30,75 @@ const colorClass: Record<string, string> = {
   rosa: "from-sentai-pink to-fuchsia-500",
 };
 
-export const BattleView = () => {
-  const [waveIdx, setWaveIdx] = useState(0);
+// Default free-play wave when there's no stage selected
+const DEFAULT_ENEMIES: StageEnemy[] = [
+  { id: "free-a", name: "Slime do Beco", hp: 40, atk: 10 },
+  { id: "free-b", name: "Slime Rosado", hp: 35, atk: 8 },
+];
+
+const toEnemies = (list: StageEnemy[]): Enemy[] =>
+  list.map((e) => ({
+    ...e,
+    maxHp: e.hp,
+    sprite: e.isBoss ? bossKaiju : enemySlime,
+  }));
+
+interface Props {
+  stage?: Stage | null;
+  onVictory?: (stageId: number) => void;
+  onExit?: () => void;
+}
+
+export const BattleView = ({ stage, onVictory, onExit }: Props) => {
+  const initialEnemies = useMemo(
+    () => toEnemies(stage?.enemies ?? DEFAULT_ENEMIES),
+    [stage?.id]
+  );
+
   const [team, setTeam] = useState<Combatant[]>(() =>
     SENTAIS.map((s) => ({ ...s, curHp: s.hp }))
   );
-  const [enemies, setEnemies] = useState<Enemy[]>(() => WAVES[0].map((e) => ({ ...e })));
+  const [enemies, setEnemies] = useState<Enemy[]>(initialEnemies);
   const [activeIdx, setActiveIdx] = useState(0);
-  const [targetId, setTargetId] = useState<string | null>(WAVES[0][0].id);
+  const [targetId, setTargetId] = useState<string | null>(initialEnemies[0]?.id ?? null);
   const [log, setLog] = useState<LogEntry[]>([
-    { id: 0, text: "A rota desperta. Os Sentais se posicionam!", tone: "info" },
+    {
+      id: 0,
+      text: stage
+        ? `Fase ${stage.id} · ${stage.name}. Os Sentais se posicionam!`
+        : "A rota desperta. Os Sentais se posicionam!",
+      tone: "info",
+    },
   ]);
   const [hitId, setHitId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
+  const victoryReportedRef = useRef(false);
   const logRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(1);
 
-  const aliveTeam = useMemo(() => team.filter((t) => t.curHp > 0), [team]);
+  // Reset whole battle when the selected stage changes
+  useEffect(() => {
+    const fresh = toEnemies(stage?.enemies ?? DEFAULT_ENEMIES);
+    setTeam(SENTAIS.map((s) => ({ ...s, curHp: s.hp })));
+    setEnemies(fresh);
+    setActiveIdx(0);
+    setTargetId(fresh[0]?.id ?? null);
+    setLog([
+      {
+        id: 0,
+        text: stage
+          ? `Fase ${stage.id} · ${stage.name}. Os Sentais se posicionam!`
+          : "A rota desperta. Os Sentais se posicionam!",
+        tone: "info",
+      },
+    ]);
+    setOutcome(null);
+    setBusy(false);
+    victoryReportedRef.current = false;
+    idRef.current = 1;
+  }, [stage?.id]);
+
   const aliveEnemies = useMemo(() => enemies.filter((e) => e.hp > 0), [enemies]);
   const active = team[activeIdx];
 
@@ -93,18 +122,18 @@ export const BattleView = () => {
 
   const advanceTurn = (newTeam: Combatant[], newEnemies: Enemy[]) => {
     if (newEnemies.every((e) => e.hp <= 0)) {
-      if (waveIdx >= WAVES.length - 1) {
-        pushLog("🏆 ROTA COMPLETA! Troféu Rota Sagrada conquistado!", "win");
-        setOutcome("win");
-        setBusy(false);
-        return;
-      }
-      const next = WAVES[waveIdx + 1].map((e) => ({ ...e }));
-      pushLog(`Onda ${waveIdx + 2} chegando: ${next[0].isBoss ? "CHEFE!" : "novos inimigos"}`, "info");
-      setWaveIdx((w) => w + 1);
-      setEnemies(next);
-      setTargetId(next[0].id);
+      pushLog(
+        stage
+          ? `🏆 Fase concluída! Recompensa: ${stage.reward}`
+          : "🏆 ROTA COMPLETA! Troféu Rota Sagrada conquistado!",
+        "win"
+      );
+      setOutcome("win");
       setBusy(false);
+      if (stage && !victoryReportedRef.current) {
+        victoryReportedRef.current = true;
+        onVictory?.(stage.id);
+      }
       return;
     }
 
@@ -215,13 +244,14 @@ export const BattleView = () => {
   };
 
   const reset = () => {
-    setWaveIdx(0);
+    const fresh = toEnemies(stage?.enemies ?? DEFAULT_ENEMIES);
     setTeam(SENTAIS.map((s) => ({ ...s, curHp: s.hp })));
-    setEnemies(WAVES[0].map((e) => ({ ...e })));
+    setEnemies(fresh);
     setActiveIdx(0);
-    setTargetId(WAVES[0][0].id);
+    setTargetId(fresh[0]?.id ?? null);
     setLog([{ id: 0, text: "Nova tentativa. Os Sentais se reagrupam!", tone: "info" }]);
     setOutcome(null);
+    victoryReportedRef.current = false;
     idRef.current = 1;
   };
 
@@ -230,19 +260,36 @@ export const BattleView = () => {
       <div className="mb-3 flex items-end justify-between px-1">
         <div>
           <h2 className="font-display text-3xl leading-none">
-            Combate · <span className="text-primary text-glow-red">Onda {waveIdx + 1}</span>
-            <span className="text-muted-foreground">/{WAVES.length}</span>
+            {stage ? (
+              <>
+                Fase <span className="text-primary text-glow-red">{stage.id}</span>
+              </>
+            ) : (
+              <>
+                Combate <span className="text-primary text-glow-red">Livre</span>
+              </>
+            )}
           </h2>
           <p className="text-[10px] font-bold uppercase tracking-[0.25em] text-muted-foreground">
-            {waveIdx === WAVES.length - 1 ? "Chefe Final · Canto do Rio" : "Rota Mística"}
+            {stage ? `${stage.name} · ${stage.location}` : "Treino · Rota Mística"}
           </p>
         </div>
-        <button
-          onClick={reset}
-          className="flex items-center gap-1 rounded-md border border-border/60 bg-card/60 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
-        >
-          <RotateCcw className="h-3 w-3" /> Reset
-        </button>
+        <div className="flex items-center gap-2">
+          {onExit && (
+            <button
+              onClick={onExit}
+              className="flex items-center gap-1 rounded-md border border-border/60 bg-card/60 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+            >
+              <MapIcon className="h-3 w-3" /> Mapa
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="flex items-center gap-1 rounded-md border border-border/60 bg-card/60 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          >
+            <RotateCcw className="h-3 w-3" /> Reset
+          </button>
+        </div>
       </div>
 
       <div className="relative overflow-hidden rounded-2xl border border-border/60 panel">
@@ -412,7 +459,7 @@ export const BattleView = () => {
                 <Trophy className="mx-auto h-10 w-10 text-secondary text-glow-gold" />
                 <h3 className="mt-2 font-display text-3xl text-secondary text-glow-gold">VITÓRIA!</h3>
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  Troféu Rota Sagrada conquistado
+                  {stage ? `Recompensa: ${stage.reward}` : "Troféu Rota Sagrada conquistado"}
                 </p>
               </>
             ) : (
@@ -423,12 +470,22 @@ export const BattleView = () => {
                 </p>
               </>
             )}
-            <button
-              onClick={reset}
-              className="mt-3 rounded-xl bg-gradient-rubro px-6 py-2.5 font-display text-lg text-primary-foreground shadow-[var(--glow-red)]"
-            >
-              {outcome === "win" ? "Nova Rota" : "Tentar de Novo"}
-            </button>
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <button
+                onClick={reset}
+                className="rounded-xl bg-gradient-rubro px-5 py-2.5 font-display text-lg text-primary-foreground shadow-[var(--glow-red)]"
+              >
+                {outcome === "win" ? "Refazer" : "Tentar de Novo"}
+              </button>
+              {onExit && (
+                <button
+                  onClick={onExit}
+                  className="flex items-center gap-1.5 rounded-xl border border-border/60 bg-card/60 px-4 py-2.5 font-display text-lg text-foreground hover:bg-card"
+                >
+                  <MapIcon className="h-4 w-4" /> Mapa
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <p className="py-4 text-center text-sm text-muted-foreground">Processando turno...</p>

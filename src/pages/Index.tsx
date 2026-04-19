@@ -4,6 +4,7 @@ import { BottomNav, type View } from "@/components/BottomNav";
 import { RouteMapView } from "@/components/RouteMapView";
 import { HeroesView } from "@/components/HeroesView";
 import { BattleView } from "@/components/BattleView";
+import type { Stage } from "@/data/route";
 
 const SUBTITLES: Record<View, string> = {
   map: "Rota Sagrada · Niterói",
@@ -13,6 +14,32 @@ const SUBTITLES: Record<View, string> = {
 
 const Index = () => {
   const [view, setView] = useState<View>("map");
+  const [activeStage, setActiveStage] = useState<Stage | null>(null);
+  const [completed, setCompleted] = useState<Set<number>>(() => new Set([1, 2]));
+
+  const handleStartStage = (stage: Stage) => {
+    setActiveStage(stage);
+    setView("battle");
+  };
+
+  const handleVictory = (stageId: number) => {
+    setCompleted((prev) => {
+      if (prev.has(stageId)) return prev;
+      const next = new Set(prev);
+      next.add(stageId);
+      return next;
+    });
+  };
+
+  const handleExitBattle = () => {
+    setActiveStage(null);
+    setView("map");
+  };
+
+  const handleNavChange = (next: View) => {
+    if (next !== "battle") setActiveStage(null);
+    setView(next);
+  };
 
   return (
     <div className="relative min-h-screen pb-24">
@@ -23,15 +50,23 @@ const Index = () => {
         <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-secondary/10 blur-3xl" />
       </div>
 
-      <TopBar subtitle={SUBTITLES[view]} />
+      <TopBar subtitle={activeStage && view === "battle" ? `Fase ${activeStage.id} · ${activeStage.name}` : SUBTITLES[view]} />
 
       <main className="px-4">
-        {view === "map" && <RouteMapView />}
+        {view === "map" && (
+          <RouteMapView completed={completed} onStartStage={handleStartStage} />
+        )}
         {view === "heroes" && <HeroesView />}
-        {view === "battle" && <BattleView />}
+        {view === "battle" && (
+          <BattleView
+            stage={activeStage}
+            onVictory={handleVictory}
+            onExit={activeStage ? handleExitBattle : undefined}
+          />
+        )}
       </main>
 
-      <BottomNav view={view} onChange={setView} />
+      <BottomNav view={view} onChange={handleNavChange} />
     </div>
   );
 };
