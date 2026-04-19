@@ -324,6 +324,66 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
         </div>
       </div>
 
+      {/* Turn timeline */}
+      <div className="mb-2 rounded-xl border border-border/60 bg-card/70 p-2 panel">
+        <div className="mb-1.5 flex items-center justify-between px-1">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+            Ordem dos Turnos
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest",
+              phase === "ally"
+                ? "bg-secondary/20 text-secondary"
+                : "bg-primary/20 text-primary animate-pulse",
+            )}
+          >
+            {phase === "ally" ? "🛡️ Sua vez" : "⚔️ Inimigos atacam"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+          {team.filter((t) => t.curHp > 0).map((t) => {
+            const isActing = phase === "ally" && team[activeIdx]?.id === t.id && !outcome;
+            return (
+              <div
+                key={`tl-ally-${t.id}`}
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-base transition-all",
+                  "bg-gradient-to-b",
+                  colorClass[t.id],
+                  isActing
+                    ? "border-foreground scale-125 ring-2 ring-foreground/60 shadow-lg"
+                    : "border-border/40 opacity-70",
+                )}
+                title={`${t.name} (aliado)`}
+              >
+                <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{t.pose}</span>
+              </div>
+            );
+          })}
+          <span className="mx-1 text-xs font-black text-muted-foreground">→</span>
+          {enemies.filter((e) => e.hp > 0).map((e) => {
+            const isActing = phase === "enemy" && enemyActingId === e.id;
+            return (
+              <div
+                key={`tl-enemy-${e.id}`}
+                className={cn(
+                  "flex h-8 shrink-0 items-center justify-center rounded-full border-2 px-2 text-[9px] font-black uppercase tracking-wider transition-all",
+                  e.isBoss ? "bg-gradient-rosa text-background" : "bg-gradient-rubro text-background",
+                  isActing
+                    ? "border-foreground scale-125 ring-2 ring-primary shadow-[var(--glow-red)] animate-shake"
+                    : "border-border/40 opacity-70",
+                )}
+                title={e.name}
+              >
+                {e.isBoss ? "👹" : "👺"}
+                <span className="ml-1 max-w-[60px] truncate">{e.name.split(" ")[0]}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="relative overflow-hidden rounded-2xl border border-border/60 panel">
         <div className="relative h-64 bg-gradient-bay">
           <div className="absolute inset-0 grid-bg opacity-40" />
