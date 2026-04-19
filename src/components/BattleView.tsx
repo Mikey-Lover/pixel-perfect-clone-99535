@@ -418,6 +418,9 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
               )}
             >
               <div className="text-2xl leading-none">{t.pose}</div>
+              <span className="absolute right-1 top-1 rounded-sm bg-background/70 px-1 text-[8px] font-black tabular-nums text-foreground">
+                Lv{t.level}
+              </span>
               <p className="mt-0.5 truncate text-[8px] font-black uppercase tracking-wider text-background">
                 {t.id}
               </p>
@@ -490,7 +493,15 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
                 </p>
               </>
             )}
-            <div className="mt-3 flex items-center justify-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              {outcome === "win" && loot && (
+                <button
+                  onClick={() => setLoot(loot)}
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-secondary to-accent px-4 py-2.5 font-display text-lg text-background shadow-[var(--glow-yellow)]"
+                >
+                  <Star className="h-4 w-4 fill-current" /> Ver Recompensa
+                </button>
+              )}
               <button
                 onClick={reset}
                 className="rounded-xl bg-gradient-rubro px-5 py-2.5 font-display text-lg text-primary-foreground shadow-[var(--glow-red)]"
