@@ -281,6 +281,8 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     setLog([{ id: 0, text: "Nova tentativa. Os Sentais se reagrupam!", tone: "info" }]);
     setOutcome(null);
     setLoot(null);
+    setPhase("ally");
+    setEnemyActingId(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
   };
