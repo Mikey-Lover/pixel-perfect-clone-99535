@@ -93,7 +93,7 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
   // Reset whole battle when the selected stage changes
   useEffect(() => {
     const fresh = toEnemies(stage?.enemies ?? DEFAULT_ENEMIES);
-    setTeam(SENTAIS.map((s) => ({ ...s, curHp: s.hp })));
+    setTeam(buildTeam(heroes));
     setEnemies(fresh);
     setActiveIdx(0);
     setTargetId(fresh[0]?.id ?? null);
@@ -108,9 +108,10 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     ]);
     setOutcome(null);
     setBusy(false);
+    setLoot(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
-  }, [stage?.id]);
+  }, [stage?.id, heroes]);
 
   const aliveEnemies = useMemo(() => enemies.filter((e) => e.hp > 0), [enemies]);
   const active = team[activeIdx];
@@ -145,7 +146,10 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
       setBusy(false);
       if (stage && !victoryReportedRef.current) {
         victoryReportedRef.current = true;
-        onVictory?.(stage.id);
+        const claim = onVictory?.(stage.id);
+        if (claim) {
+          window.setTimeout(() => setLoot(claim), 600);
+        }
       }
       return;
     }
@@ -236,7 +240,9 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
       return;
     }
 
-    const base = kind === "skill" ? active.skill.damage : Math.floor(active.stats.atk / 4) + 8;
+    const base = kind === "skill"
+      ? active.skill.damage + active.atkBonus
+      : Math.floor(active.stats.atk / 4) + 8 + active.atkBonus;
     const variance = Math.floor(Math.random() * 6);
     const crit = Math.random() < 0.18;
     const dmg = (base + variance) * (crit ? 2 : 1);
@@ -258,12 +264,13 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
 
   const reset = () => {
     const fresh = toEnemies(stage?.enemies ?? DEFAULT_ENEMIES);
-    setTeam(SENTAIS.map((s) => ({ ...s, curHp: s.hp })));
+    setTeam(buildTeam(heroes));
     setEnemies(fresh);
     setActiveIdx(0);
     setTargetId(fresh[0]?.id ?? null);
     setLog([{ id: 0, text: "Nova tentativa. Os Sentais se reagrupam!", tone: "info" }]);
     setOutcome(null);
+    setLoot(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
   };
