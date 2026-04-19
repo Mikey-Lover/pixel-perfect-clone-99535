@@ -70,10 +70,10 @@ export const SECTORS: Sector[] = [
     index: 3,
     name: "Setor III · Ponte",
     subtitle: "Travessia decisiva",
-    colorVar: "--neon-cyan",
-    accentClass: "bg-neon-cyan",
-    textClass: "text-neon-cyan",
-    ringClass: "ring-neon-cyan/60",
+    colorVar: "--neon-violet",
+    accentClass: "bg-neon-violet",
+    textClass: "text-neon-violet",
+    ringClass: "ring-neon-violet/60",
   },
   {
     id: "orla",
@@ -307,7 +307,6 @@ export const ROUTE: Stage[] = [
   },
   {
     id: 15,
-    sentaiObjectiveNote: undefined as never,
     sectorId: "orla",
     name: "Objetivo: Sirene Mística",
     location: "Pedra do Índio",
@@ -319,7 +318,7 @@ export const ROUTE: Stage[] = [
       { id: "s15-a", name: "Sirene Mística", hp: 200, atk: 19, tier: "elite" },
       { id: "s15-b", name: "Eco da Sirene", hp: 50, atk: 11, tier: "comum" },
     ],
-  } as Stage,
+  },
   {
     id: 16,
     sectorId: "orla",
@@ -376,8 +375,8 @@ export const STAGE_META: Record<
   boss: { label: "Chefe", color: "bg-sentai-pink", ring: "ring-sentai-pink/60", icon: "👑" },
   wave: { label: "Ondas", color: "bg-sentai-green", ring: "ring-sentai-green/60", icon: "🌊" },
   survival: { label: "Sobrevivência", color: "bg-neon-violet", ring: "ring-neon-violet/60", icon: "⏳" },
-  miniboss: { label: "Mini-Chefe", color: "bg-sunset-gold", ring: "ring-sunset-gold/60", icon: "💀" },
-  objective: { label: "Objetivo", color: "bg-niteroi-bay", ring: "ring-niteroi-bay/60", icon: "🎯" },
+  miniboss: { label: "Mini-Chefe", color: "bg-neon-gold", ring: "ring-neon-gold/60", icon: "💀" },
+  objective: { label: "Objetivo", color: "bg-neon-cyan", ring: "ring-neon-cyan/60", icon: "🎯" },
 };
 
 export const stagesBySector = (sectorId: SectorId) => ROUTE.filter((s) => s.sectorId === sectorId);
