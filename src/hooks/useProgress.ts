@@ -2,12 +2,13 @@ import { useCallback, useEffect, useState } from "react";
 import { SENTAIS, type SentaiId } from "@/data/sentais";
 import { STAGE_REWARDS, xpForNextLevel, type HeroProgress } from "@/data/rewards";
 
-const KEY = "sentais-progress-v1";
+const KEY = "sentais-progress-v2";
 
 export interface ProgressState {
   stars: number;
   heroes: Record<SentaiId, HeroProgress>;
   claimedStages: number[];
+  selectedJourneyHero: SentaiId | null;
 }
 
 const defaultState = (): ProgressState => ({
@@ -17,20 +18,23 @@ const defaultState = (): ProgressState => ({
     return acc;
   }, {} as Record<SentaiId, HeroProgress>),
   claimedStages: [],
+  selectedJourneyHero: null,
 });
 
 const load = (): ProgressState => {
   if (typeof window === "undefined") return defaultState();
   try {
-    const raw = window.localStorage.getItem(KEY);
+    // Migration: pull from v1 if present
+    const v2 = window.localStorage.getItem(KEY);
+    const raw = v2 ?? window.localStorage.getItem("sentais-progress-v1");
     if (!raw) return defaultState();
-    const parsed = JSON.parse(raw) as ProgressState;
-    // Merge to ensure all heroes exist (forward compat)
+    const parsed = JSON.parse(raw) as Partial<ProgressState>;
     const base = defaultState();
     return {
       stars: parsed.stars ?? 0,
       heroes: { ...base.heroes, ...(parsed.heroes ?? {}) },
       claimedStages: parsed.claimedStages ?? [],
+      selectedJourneyHero: parsed.selectedJourneyHero ?? null,
     };
   } catch {
     return defaultState();
@@ -80,7 +84,6 @@ export const useProgress = () => {
 
     setState((prev) => {
       const alreadyClaimed = prev.claimedStages.includes(stageId);
-      // Repeat clears: half stars, no skin re-unlock, reduced XP
       const starsGained = alreadyClaimed ? Math.floor(reward.stars / 2) : reward.stars;
       const xpGained = alreadyClaimed ? Math.floor(reward.xpPerHero / 2) : reward.xpPerHero;
 
@@ -123,6 +126,7 @@ export const useProgress = () => {
       };
 
       return {
+        ...prev,
         stars: prev.stars + starsGained,
         heroes: nextHeroes,
         claimedStages: alreadyClaimed ? prev.claimedStages : [...prev.claimedStages, stageId],
@@ -132,7 +136,11 @@ export const useProgress = () => {
     return result;
   }, []);
 
+  const selectJourneyHero = useCallback((sentaiId: SentaiId) => {
+    setState((prev) => ({ ...prev, selectedJourneyHero: sentaiId }));
+  }, []);
+
   const reset = useCallback(() => setState(defaultState()), []);
 
-  return { state, claimStage, reset };
+  return { state, claimStage, selectJourneyHero, reset };
 };

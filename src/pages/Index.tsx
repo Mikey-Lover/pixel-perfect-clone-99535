@@ -4,8 +4,10 @@ import { BottomNav, type View } from "@/components/BottomNav";
 import { RouteMapView } from "@/components/RouteMapView";
 import { HeroesView } from "@/components/HeroesView";
 import { BattleView } from "@/components/BattleView";
+import { HeroSelectModal } from "@/components/HeroSelectModal";
 import type { Stage } from "@/data/route";
 import { useProgress } from "@/hooks/useProgress";
+import type { SentaiId } from "@/data/sentais";
 
 const SUBTITLES: Record<View, string> = {
   map: "Rota Sagrada · Niterói",
@@ -17,7 +19,8 @@ const Index = () => {
   const [view, setView] = useState<View>("map");
   const [activeStage, setActiveStage] = useState<Stage | null>(null);
   const [completed, setCompleted] = useState<Set<number>>(() => new Set());
-  const { state: progress, claimStage } = useProgress();
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const { state: progress, claimStage, selectJourneyHero } = useProgress();
 
   const handleStartStage = (stage: Stage) => {
     setActiveStage(stage);
@@ -44,9 +47,16 @@ const Index = () => {
     setView(next);
   };
 
+  const handlePickHero = (id: SentaiId) => {
+    selectJourneyHero(id);
+    setPickerOpen(false);
+  };
+
+  // Show picker on first run (no hero selected and modal not opened yet)
+  const mustChoose = progress.selectedJourneyHero === null;
+
   return (
     <div className="relative min-h-screen pb-24">
-      {/* Atmospheric background flourishes */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute -left-32 top-1/4 h-96 w-96 rounded-full bg-primary/15 blur-3xl" />
         <div className="absolute -right-32 top-2/3 h-96 w-96 rounded-full bg-accent/15 blur-3xl" />
@@ -54,13 +64,23 @@ const Index = () => {
       </div>
 
       <TopBar
-        subtitle={activeStage && view === "battle" ? `Fase ${activeStage.id} · ${activeStage.name}` : SUBTITLES[view]}
+        subtitle={
+          activeStage && view === "battle"
+            ? `Fase ${activeStage.id} · ${activeStage.name}`
+            : SUBTITLES[view]
+        }
         stars={progress.stars}
+        heroId={progress.selectedJourneyHero}
+        onAvatarClick={() => setPickerOpen(true)}
       />
 
       <main className="px-4">
         {view === "map" && (
-          <RouteMapView completed={completed} onStartStage={handleStartStage} />
+          <RouteMapView
+            completed={completed}
+            onStartStage={handleStartStage}
+            selectedHeroId={progress.selectedJourneyHero}
+          />
         )}
         {view === "heroes" && <HeroesView heroes={progress.heroes} />}
         {view === "battle" && (
@@ -74,6 +94,8 @@ const Index = () => {
       </main>
 
       <BottomNav view={view} onChange={handleNavChange} />
+
+      {(mustChoose || pickerOpen) && <HeroSelectModal onConfirm={handlePickHero} />}
     </div>
   );
 };

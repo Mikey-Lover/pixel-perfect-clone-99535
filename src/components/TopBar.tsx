@@ -1,21 +1,61 @@
-import teamImage from "@/assets/sentai-team.png";
+import { SENTAIS, type SentaiId } from "@/data/sentais";
+import { cn } from "@/lib/utils";
 
-export const TopBar = ({ subtitle, stars = 0 }: { subtitle: string; stars?: number }) => {
+const gradientById: Record<SentaiId, string> = {
+  rubro: "bg-gradient-rubro",
+  dourado: "bg-gradient-dourado",
+  esmeralda: "bg-gradient-esmeralda",
+  onix: "bg-gradient-onix",
+  rosa: "bg-gradient-rosa",
+};
+const ringById: Record<SentaiId, string> = {
+  rubro: "ring-sentai-red/80 shadow-[var(--glow-red)]",
+  dourado: "ring-sentai-yellow/80 shadow-[var(--glow-yellow)]",
+  esmeralda: "ring-sentai-green/80 shadow-[var(--glow-green)]",
+  onix: "ring-foreground/40 shadow-[var(--shadow-deep)]",
+  rosa: "ring-sentai-pink/80 shadow-[var(--glow-pink)]",
+};
+
+interface Props {
+  subtitle: string;
+  stars?: number;
+  heroId?: SentaiId | null;
+  onAvatarClick?: () => void;
+}
+
+export const TopBar = ({ subtitle, stars = 0, heroId, onAvatarClick }: Props) => {
   const formatted = stars.toLocaleString("pt-BR");
+  const hero = heroId ? SENTAIS.find((s) => s.id === heroId) : null;
+
   return (
     <header className="sticky top-0 z-30 border-b border-border/50 bg-background/85 backdrop-blur-lg">
       <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
-        <div className="relative h-10 w-10 overflow-hidden rounded-full ring-2 ring-primary/70 shadow-[0_0_18px_hsl(var(--primary)/0.6)]">
-          <img src={teamImage} alt="Equipe Super Sentai" className="h-full w-full object-cover object-top scale-150" />
-        </div>
-        <div className="flex-1">
-          <h1 className="font-display text-2xl leading-none text-foreground">
+        <button
+          onClick={onAvatarClick}
+          className={cn(
+            "relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl ring-2 transition-transform active:scale-95",
+            hero ? gradientById[hero.id] : "bg-muted",
+            hero ? ringById[hero.id] : "ring-border",
+          )}
+          aria-label={hero ? `Trocar líder (atual: ${hero.name})` : "Escolher líder"}
+        >
+          <div className="absolute inset-0 grid-bg opacity-25" />
+          <span className="relative text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+            {hero ? hero.pose : "★"}
+          </span>
+        </button>
+
+        <div className="flex-1 min-w-0">
+          <h1 className="font-display text-xl leading-none text-foreground">
             SUPER <span className="text-primary text-glow-red">SENTAIS</span>
           </h1>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">{subtitle}</p>
+          <p className="truncate text-[10px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+            {hero ? `Líder: ${hero.codename}` : subtitle}
+          </p>
         </div>
+
         <div
-          className="flex items-center gap-1 rounded-md border border-secondary/40 bg-secondary/10 px-2 py-1 text-xs font-bold tabular-nums text-secondary"
+          className="flex items-center gap-1 rounded-lg border border-secondary/40 bg-secondary/10 px-2.5 py-1.5 text-xs font-bold tabular-nums text-secondary"
           aria-label={`${formatted} estrelas`}
         >
           <span aria-hidden>⭐</span>
