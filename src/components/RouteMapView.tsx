@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ROUTE, SECTORS, STAGE_META, type Stage, type SectorId } from "@/data/route";
 import { SENTAIS, type SentaiId } from "@/data/sentais";
+import { SENTAI_IMAGES } from "@/data/sentai-images";
 import routeMap from "@/assets/route-map.jpg";
 import { cn } from "@/lib/utils";
 import { Sparkles, X, Lock, Check, Crown } from "lucide-react";
@@ -41,9 +42,13 @@ export const RouteMapView = ({ completed, onStartStage, selectedHeroId }: Props)
           <div className={cn("relative px-4 py-3", heroGradient[hero.id])}>
             <div className="absolute inset-0 grid-bg opacity-25" />
             <div className="relative flex items-center gap-3">
-              <span className="text-4xl drop-shadow-[0_3px_8px_rgba(0,0,0,0.6)] animate-float-y">
-                {hero.pose}
-              </span>
+              <div className="relative h-16 w-12 shrink-0">
+                <img
+                  src={SENTAI_IMAGES[hero.id]}
+                  alt={`${hero.name}`}
+                  className="absolute inset-x-0 bottom-0 h-[140%] w-full object-contain object-bottom drop-shadow-[0_3px_8px_rgba(0,0,0,0.6)] animate-float-y"
+                />
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[9px] font-black uppercase tracking-[0.3em] text-background/80">
                   Líder da Jornada
@@ -153,8 +158,13 @@ export const RouteMapView = ({ completed, onStartStage, selectedHeroId }: Props)
               aria-hidden
             >
               <div className="relative">
-                <div className={cn("flex h-12 w-12 items-center justify-center rounded-full ring-2 ring-foreground shadow-[0_8px_24px_rgba(0,0,0,0.6)]", heroGradient[hero.id])}>
-                  <span className="text-2xl drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">{hero.pose}</span>
+                <div className={cn("relative flex h-14 w-14 items-end justify-center overflow-hidden rounded-full ring-2 ring-foreground shadow-[0_8px_24px_rgba(0,0,0,0.6)]", heroGradient[hero.id])}>
+                  <img
+                    src={SENTAI_IMAGES[hero.id]}
+                    alt=""
+                    aria-hidden
+                    className="h-[155%] w-auto object-contain object-bottom drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                  />
                 </div>
                 <div className="absolute left-1/2 top-full -translate-x-1/2 mt-0.5">
                   <div className="h-0 w-0 border-l-[6px] border-r-[6px] border-t-[8px] border-l-transparent border-r-transparent border-t-foreground/90" />
