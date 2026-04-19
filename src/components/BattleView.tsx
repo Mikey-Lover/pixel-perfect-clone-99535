@@ -87,6 +87,8 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
   const [loot, setLoot] = useState<ClaimResult | null>(null);
+  const [phase, setPhase] = useState<"ally" | "enemy">("ally");
+  const [enemyActingId, setEnemyActingId] = useState<string | null>(null);
   const victoryReportedRef = useRef(false);
   const logRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(1);
@@ -110,6 +112,8 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     setOutcome(null);
     setBusy(false);
     setLoot(null);
+    setPhase("ally");
+    setEnemyActingId(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
   }, [stage?.id, heroes]);
@@ -179,9 +183,12 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     let workingTeam = [...curTeam];
     const liveEnemies = curEnemies.filter((e) => e.hp > 0);
     let i = 0;
+    setPhase("enemy");
+    pushLog("⚠️ Vez dos inimigos!", "enemy");
 
     const step = () => {
       if (i >= liveEnemies.length) {
+        setEnemyActingId(null);
         if (workingTeam.every((t) => t.curHp <= 0)) {
           pushLog("💀 Equipe derrotada... a rota guarda seus segredos.", "info");
           setOutcome("lose");
@@ -193,10 +200,12 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
           idx = workingTeam.findIndex((t) => t.curHp > 0);
         }
         setActiveIdx(idx);
+        setPhase("ally");
         setBusy(false);
         return;
       }
       const e = liveEnemies[i];
+      setEnemyActingId(e.id);
       const aliveAllies = workingTeam.map((t, idx) => ({ t, idx })).filter((x) => x.t.curHp > 0);
       const tgt = aliveAllies[Math.floor(Math.random() * aliveAllies.length)];
       const dmg = Math.max(4, e.atk + Math.floor(Math.random() * 6) - 2 - Math.floor(tgt.t.stats.def / 12));
@@ -207,10 +216,10 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
       pushLog(`${e.name} ataca ${tgt.t.name} causando ${dmg} de dano.`, "enemy");
       setTeam(workingTeam);
       i++;
-      window.setTimeout(step, 700);
+      window.setTimeout(step, 900);
     };
 
-    step();
+    window.setTimeout(step, 500);
   };
 
   const doAttack = (kind: "basic" | "skill") => {
@@ -272,6 +281,8 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     setLog([{ id: 0, text: "Nova tentativa. Os Sentais se reagrupam!", tone: "info" }]);
     setOutcome(null);
     setLoot(null);
+    setPhase("ally");
+    setEnemyActingId(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
   };
@@ -310,6 +321,66 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
           >
             <RotateCcw className="h-3 w-3" /> Reset
           </button>
+        </div>
+      </div>
+
+      {/* Turn timeline */}
+      <div className="mb-2 rounded-xl border border-border/60 bg-card/70 p-2 panel">
+        <div className="mb-1.5 flex items-center justify-between px-1">
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+            Ordem dos Turnos
+          </span>
+          <span
+            className={cn(
+              "rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest",
+              phase === "ally"
+                ? "bg-secondary/20 text-secondary"
+                : "bg-primary/20 text-primary animate-pulse",
+            )}
+          >
+            {phase === "ally" ? "🛡️ Sua vez" : "⚔️ Inimigos atacam"}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+          {team.filter((t) => t.curHp > 0).map((t) => {
+            const isActing = phase === "ally" && team[activeIdx]?.id === t.id && !outcome;
+            return (
+              <div
+                key={`tl-ally-${t.id}`}
+                className={cn(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 text-base transition-all",
+                  "bg-gradient-to-b",
+                  colorClass[t.id],
+                  isActing
+                    ? "border-foreground scale-125 ring-2 ring-foreground/60 shadow-lg"
+                    : "border-border/40 opacity-70",
+                )}
+                title={`${t.name} (aliado)`}
+              >
+                <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]">{t.pose}</span>
+              </div>
+            );
+          })}
+          <span className="mx-1 text-xs font-black text-muted-foreground">→</span>
+          {enemies.filter((e) => e.hp > 0).map((e) => {
+            const isActing = phase === "enemy" && enemyActingId === e.id;
+            return (
+              <div
+                key={`tl-enemy-${e.id}`}
+                className={cn(
+                  "flex h-8 shrink-0 items-center justify-center rounded-full border-2 px-2 text-[9px] font-black uppercase tracking-wider transition-all",
+                  e.isBoss ? "bg-gradient-rosa text-background" : "bg-gradient-rubro text-background",
+                  isActing
+                    ? "border-foreground scale-125 ring-2 ring-primary shadow-[var(--glow-red)] animate-shake"
+                    : "border-border/40 opacity-70",
+                )}
+                title={e.name}
+              >
+                {e.isBoss ? "👹" : "👺"}
+                <span className="ml-1 max-w-[60px] truncate">{e.name.split(" ")[0]}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
