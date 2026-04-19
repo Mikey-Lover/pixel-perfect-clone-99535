@@ -87,6 +87,8 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
   const [loot, setLoot] = useState<ClaimResult | null>(null);
+  const [phase, setPhase] = useState<"ally" | "enemy">("ally");
+  const [enemyActingId, setEnemyActingId] = useState<string | null>(null);
   const victoryReportedRef = useRef(false);
   const logRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(1);
@@ -110,6 +112,8 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     setOutcome(null);
     setBusy(false);
     setLoot(null);
+    setPhase("ally");
+    setEnemyActingId(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
   }, [stage?.id, heroes]);
