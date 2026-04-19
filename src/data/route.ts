@@ -1,5 +1,13 @@
 export type StageType = "battle" | "arena" | "event" | "boss";
 
+export interface StageEnemy {
+  id: string;
+  name: string;
+  hp: number;
+  atk: number;
+  isBoss?: boolean;
+}
+
 export interface Stage {
   id: number;
   name: string;
@@ -10,6 +18,7 @@ export interface Stage {
   // percent positions on the map background
   x: number;
   y: number;
+  enemies: StageEnemy[];
 }
 
 export const ROUTE: Stage[] = [
@@ -22,6 +31,10 @@ export const ROUTE: Stage[] = [
     reward: "200 Estrelas · Skin Iniciante",
     x: 12,
     y: 78,
+    enemies: [
+      { id: "s1-a", name: "Capanga do Terminal", hp: 38, atk: 9 },
+      { id: "s1-b", name: "Punguista Néon", hp: 32, atk: 8 },
+    ],
   },
   {
     id: 2,
@@ -32,6 +45,11 @@ export const ROUTE: Stage[] = [
     reward: "350 Estrelas",
     x: 28,
     y: 62,
+    enemies: [
+      { id: "s2-a", name: "Slime do Beco", hp: 48, atk: 11 },
+      { id: "s2-b", name: "Slime Rosado", hp: 42, atk: 10 },
+      { id: "s2-c", name: "Marginal Faísca", hp: 50, atk: 12 },
+    ],
   },
   {
     id: 3,
@@ -42,6 +60,11 @@ export const ROUTE: Stage[] = [
     reward: "Pose Lendária",
     x: 42,
     y: 50,
+    enemies: [
+      { id: "s3-a", name: "Rival Atum", hp: 70, atk: 14 },
+      { id: "s3-b", name: "Rival Polvo", hp: 65, atk: 13 },
+      { id: "s3-c", name: "Rival Sardinha", hp: 55, atk: 12 },
+    ],
   },
   {
     id: 4,
@@ -52,6 +75,10 @@ export const ROUTE: Stage[] = [
     reward: "Selo de Evento",
     x: 56,
     y: 42,
+    enemies: [
+      { id: "s4-a", name: "Mascote Gigante", hp: 90, atk: 13 },
+      { id: "s4-b", name: "Folião Frenético", hp: 60, atk: 15 },
+    ],
   },
   {
     id: 5,
@@ -62,6 +89,11 @@ export const ROUTE: Stage[] = [
     reward: "500 Estrelas",
     x: 70,
     y: 36,
+    enemies: [
+      { id: "s5-a", name: "Capitão da Ponte", hp: 110, atk: 16 },
+      { id: "s5-b", name: "Sentinela", hp: 70, atk: 13 },
+      { id: "s5-c", name: "Sentinela", hp: 70, atk: 13 },
+    ],
   },
   {
     id: 6,
@@ -72,6 +104,11 @@ export const ROUTE: Stage[] = [
     reward: "Skin Praiana",
     x: 80,
     y: 50,
+    enemies: [
+      { id: "s6-a", name: "Surfista Sombrio", hp: 95, atk: 17 },
+      { id: "s6-b", name: "Vendedor Furacão", hp: 85, atk: 15 },
+      { id: "s6-c", name: "Salva-vidas Rival", hp: 100, atk: 14 },
+    ],
   },
   {
     id: 7,
@@ -82,6 +119,9 @@ export const ROUTE: Stage[] = [
     reward: "Troféu Rota Sagrada",
     x: 90,
     y: 70,
+    enemies: [
+      { id: "s7-boss", name: "Caranguejo Místico", hp: 260, atk: 22, isBoss: true },
+    ],
   },
 ];
 
