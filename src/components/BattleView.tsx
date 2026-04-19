@@ -89,24 +89,6 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
   const victoryReportedRef = useRef(false);
   const logRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(1);
-  const [enemies, setEnemies] = useState<Enemy[]>(initialEnemies);
-  const [activeIdx, setActiveIdx] = useState(0);
-  const [targetId, setTargetId] = useState<string | null>(initialEnemies[0]?.id ?? null);
-  const [log, setLog] = useState<LogEntry[]>([
-    {
-      id: 0,
-      text: stage
-        ? `Fase ${stage.id} · ${stage.name}. Os Sentais se posicionam!`
-        : "A rota desperta. Os Sentais se posicionam!",
-      tone: "info",
-    },
-  ]);
-  const [hitId, setHitId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
-  const victoryReportedRef = useRef(false);
-  const logRef = useRef<HTMLDivElement>(null);
-  const idRef = useRef(1);
 
   // Reset whole battle when the selected stage changes
   useEffect(() => {
