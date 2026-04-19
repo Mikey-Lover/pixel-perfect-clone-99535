@@ -183,9 +183,12 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
     let workingTeam = [...curTeam];
     const liveEnemies = curEnemies.filter((e) => e.hp > 0);
     let i = 0;
+    setPhase("enemy");
+    pushLog("⚠️ Vez dos inimigos!", "enemy");
 
     const step = () => {
       if (i >= liveEnemies.length) {
+        setEnemyActingId(null);
         if (workingTeam.every((t) => t.curHp <= 0)) {
           pushLog("💀 Equipe derrotada... a rota guarda seus segredos.", "info");
           setOutcome("lose");
@@ -197,10 +200,12 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
           idx = workingTeam.findIndex((t) => t.curHp > 0);
         }
         setActiveIdx(idx);
+        setPhase("ally");
         setBusy(false);
         return;
       }
       const e = liveEnemies[i];
+      setEnemyActingId(e.id);
       const aliveAllies = workingTeam.map((t, idx) => ({ t, idx })).filter((x) => x.t.curHp > 0);
       const tgt = aliveAllies[Math.floor(Math.random() * aliveAllies.length)];
       const dmg = Math.max(4, e.atk + Math.floor(Math.random() * 6) - 2 - Math.floor(tgt.t.stats.def / 12));
@@ -211,10 +216,10 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
       pushLog(`${e.name} ataca ${tgt.t.name} causando ${dmg} de dano.`, "enemy");
       setTeam(workingTeam);
       i++;
-      window.setTimeout(step, 700);
+      window.setTimeout(step, 900);
     };
 
-    step();
+    window.setTimeout(step, 500);
   };
 
   const doAttack = (kind: "basic" | "skill") => {
