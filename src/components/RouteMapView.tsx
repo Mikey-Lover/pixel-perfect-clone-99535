@@ -6,10 +6,14 @@ import { Sparkles, Trophy, Swords, Users, Calendar, X } from "lucide-react";
 
 const TYPE_ICON = { battle: Swords, arena: Users, event: Calendar, boss: Trophy } as const;
 
-export const RouteMapView = () => {
+interface Props {
+  completed: Set<number>;
+  onStartStage: (stage: Stage) => void;
+}
+
+export const RouteMapView = ({ completed, onStartStage }: Props) => {
   const [selected, setSelected] = useState<Stage | null>(null);
-  const [completed, setCompleted] = useState<Set<number>>(new Set([1, 2]));
-  const current = Math.max(...completed) + 1;
+  const current = (completed.size === 0 ? 0 : Math.max(...completed)) + 1;
 
   return (
     <section className="relative">
@@ -189,8 +193,9 @@ export const RouteMapView = () => {
             <button
               disabled={selected.id > current}
               onClick={() => {
-                setCompleted((p) => new Set(p).add(selected.id));
+                const s = selected;
                 setSelected(null);
+                onStartStage(s);
               }}
               className={cn(
                 "mt-5 w-full rounded-xl py-4 font-display text-2xl tracking-wider transition-transform active:scale-[0.98]",
