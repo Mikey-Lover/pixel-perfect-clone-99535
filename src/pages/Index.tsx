@@ -5,6 +5,7 @@ import { RouteMapView } from "@/components/RouteMapView";
 import { HeroesView } from "@/components/HeroesView";
 import { BattleView } from "@/components/BattleView";
 import type { Stage } from "@/data/route";
+import { useProgress } from "@/hooks/useProgress";
 
 const SUBTITLES: Record<View, string> = {
   map: "Rota Sagrada · Niterói",
@@ -15,7 +16,8 @@ const SUBTITLES: Record<View, string> = {
 const Index = () => {
   const [view, setView] = useState<View>("map");
   const [activeStage, setActiveStage] = useState<Stage | null>(null);
-  const [completed, setCompleted] = useState<Set<number>>(() => new Set([1, 2]));
+  const [completed, setCompleted] = useState<Set<number>>(() => new Set());
+  const { state: progress, claimStage } = useProgress();
 
   const handleStartStage = (stage: Stage) => {
     setActiveStage(stage);
@@ -29,6 +31,7 @@ const Index = () => {
       next.add(stageId);
       return next;
     });
+    return claimStage(stageId);
   };
 
   const handleExitBattle = () => {
@@ -50,16 +53,20 @@ const Index = () => {
         <div className="absolute left-1/2 top-0 h-64 w-64 -translate-x-1/2 rounded-full bg-secondary/10 blur-3xl" />
       </div>
 
-      <TopBar subtitle={activeStage && view === "battle" ? `Fase ${activeStage.id} · ${activeStage.name}` : SUBTITLES[view]} />
+      <TopBar
+        subtitle={activeStage && view === "battle" ? `Fase ${activeStage.id} · ${activeStage.name}` : SUBTITLES[view]}
+        stars={progress.stars}
+      />
 
       <main className="px-4">
         {view === "map" && (
           <RouteMapView completed={completed} onStartStage={handleStartStage} />
         )}
-        {view === "heroes" && <HeroesView />}
+        {view === "heroes" && <HeroesView heroes={progress.heroes} />}
         {view === "battle" && (
           <BattleView
             stage={activeStage}
+            heroes={progress.heroes}
             onVictory={handleVictory}
             onExit={activeStage ? handleExitBattle : undefined}
           />

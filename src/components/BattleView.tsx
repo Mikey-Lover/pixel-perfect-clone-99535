@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SENTAIS, type Sentai } from "@/data/sentais";
+import { SENTAIS, type Sentai, type SentaiId } from "@/data/sentais";
 import enemySlime from "@/assets/enemy-thug.png";
 import bossKaiju from "@/assets/boss-kaiju.png";
 import { cn } from "@/lib/utils";
-import { Heart, Sword, Sparkles, Trophy, RotateCcw, Map as MapIcon } from "lucide-react";
+import { Heart, Sword, Sparkles, Trophy, RotateCcw, Map as MapIcon, Star } from "lucide-react";
 import type { Stage, StageEnemy } from "@/data/route";
+import { heroBoost, type HeroProgress } from "@/data/rewards";
+import { LootModal } from "@/components/LootModal";
+import type { ClaimResult } from "@/hooks/useProgress";
 
 interface Enemy {
   id: string;
@@ -18,6 +21,8 @@ interface Enemy {
 
 interface Combatant extends Sentai {
   curHp: number;
+  level: number;
+  atkBonus: number;
 }
 
 type LogEntry = { id: number; text: string; tone: "ally" | "enemy" | "info" | "win" };
@@ -45,19 +50,26 @@ const toEnemies = (list: StageEnemy[]): Enemy[] =>
 
 interface Props {
   stage?: Stage | null;
-  onVictory?: (stageId: number) => void;
+  heroes?: Record<SentaiId, HeroProgress>;
+  onVictory?: (stageId: number) => ClaimResult;
   onExit?: () => void;
 }
 
-export const BattleView = ({ stage, onVictory, onExit }: Props) => {
+const buildTeam = (heroes?: Record<SentaiId, HeroProgress>): Combatant[] =>
+  SENTAIS.map((s) => {
+    const level = heroes?.[s.id]?.level ?? 1;
+    const { hpBonus, atkBonus } = heroBoost(level);
+    const maxHp = s.hp + hpBonus;
+    return { ...s, hp: maxHp, curHp: maxHp, level, atkBonus };
+  });
+
+export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
   const initialEnemies = useMemo(
     () => toEnemies(stage?.enemies ?? DEFAULT_ENEMIES),
     [stage?.id]
   );
 
-  const [team, setTeam] = useState<Combatant[]>(() =>
-    SENTAIS.map((s) => ({ ...s, curHp: s.hp }))
-  );
+  const [team, setTeam] = useState<Combatant[]>(() => buildTeam(heroes));
   const [enemies, setEnemies] = useState<Enemy[]>(initialEnemies);
   const [activeIdx, setActiveIdx] = useState(0);
   const [targetId, setTargetId] = useState<string | null>(initialEnemies[0]?.id ?? null);
@@ -73,6 +85,7 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
   const [hitId, setHitId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
+  const [loot, setLoot] = useState<ClaimResult | null>(null);
   const victoryReportedRef = useRef(false);
   const logRef = useRef<HTMLDivElement>(null);
   const idRef = useRef(1);
@@ -80,7 +93,7 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
   // Reset whole battle when the selected stage changes
   useEffect(() => {
     const fresh = toEnemies(stage?.enemies ?? DEFAULT_ENEMIES);
-    setTeam(SENTAIS.map((s) => ({ ...s, curHp: s.hp })));
+    setTeam(buildTeam(heroes));
     setEnemies(fresh);
     setActiveIdx(0);
     setTargetId(fresh[0]?.id ?? null);
@@ -95,9 +108,10 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
     ]);
     setOutcome(null);
     setBusy(false);
+    setLoot(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
-  }, [stage?.id]);
+  }, [stage?.id, heroes]);
 
   const aliveEnemies = useMemo(() => enemies.filter((e) => e.hp > 0), [enemies]);
   const active = team[activeIdx];
@@ -132,7 +146,10 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
       setBusy(false);
       if (stage && !victoryReportedRef.current) {
         victoryReportedRef.current = true;
-        onVictory?.(stage.id);
+        const claim = onVictory?.(stage.id);
+        if (claim) {
+          window.setTimeout(() => setLoot(claim), 600);
+        }
       }
       return;
     }
@@ -223,7 +240,9 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
       return;
     }
 
-    const base = kind === "skill" ? active.skill.damage : Math.floor(active.stats.atk / 4) + 8;
+    const base = kind === "skill"
+      ? active.skill.damage + active.atkBonus
+      : Math.floor(active.stats.atk / 4) + 8 + active.atkBonus;
     const variance = Math.floor(Math.random() * 6);
     const crit = Math.random() < 0.18;
     const dmg = (base + variance) * (crit ? 2 : 1);
@@ -245,12 +264,13 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
 
   const reset = () => {
     const fresh = toEnemies(stage?.enemies ?? DEFAULT_ENEMIES);
-    setTeam(SENTAIS.map((s) => ({ ...s, curHp: s.hp })));
+    setTeam(buildTeam(heroes));
     setEnemies(fresh);
     setActiveIdx(0);
     setTargetId(fresh[0]?.id ?? null);
     setLog([{ id: 0, text: "Nova tentativa. Os Sentais se reagrupam!", tone: "info" }]);
     setOutcome(null);
+    setLoot(null);
     victoryReportedRef.current = false;
     idRef.current = 1;
   };
@@ -398,6 +418,9 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
               )}
             >
               <div className="text-2xl leading-none">{t.pose}</div>
+              <span className="absolute right-1 top-1 rounded-sm bg-background/70 px-1 text-[8px] font-black tabular-nums text-foreground">
+                Lv{t.level}
+              </span>
               <p className="mt-0.5 truncate text-[8px] font-black uppercase tracking-wider text-background">
                 {t.id}
               </p>
@@ -470,7 +493,15 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
                 </p>
               </>
             )}
-            <div className="mt-3 flex items-center justify-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              {outcome === "win" && loot && (
+                <button
+                  onClick={() => setLoot(loot)}
+                  className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-secondary to-accent px-4 py-2.5 font-display text-lg text-background shadow-[var(--glow-yellow)]"
+                >
+                  <Star className="h-4 w-4 fill-current" /> Ver Recompensa
+                </button>
+              )}
               <button
                 onClick={reset}
                 className="rounded-xl bg-gradient-rubro px-5 py-2.5 font-display text-lg text-primary-foreground shadow-[var(--glow-red)]"
@@ -491,6 +522,16 @@ export const BattleView = ({ stage, onVictory, onExit }: Props) => {
           <p className="py-4 text-center text-sm text-muted-foreground">Processando turno...</p>
         )}
       </div>
+
+      {loot && (
+        <LootModal
+          result={loot}
+          stageName={stage ? `Fase ${stage.id} · ${stage.name}` : "Combate Livre"}
+          onClose={() => setLoot(null)}
+          onContinue={onExit ? () => { setLoot(null); onExit(); } : undefined}
+          onReplay={() => { setLoot(null); reset(); }}
+        />
+      )}
     </section>
   );
 };
