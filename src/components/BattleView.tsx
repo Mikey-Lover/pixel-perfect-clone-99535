@@ -1,10 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SENTAIS, type Sentai } from "@/data/sentais";
+import { SENTAIS, type Sentai, type SentaiId } from "@/data/sentais";
 import enemySlime from "@/assets/enemy-thug.png";
 import bossKaiju from "@/assets/boss-kaiju.png";
 import { cn } from "@/lib/utils";
-import { Heart, Sword, Sparkles, Trophy, RotateCcw, Map as MapIcon } from "lucide-react";
+import { Heart, Sword, Sparkles, Trophy, RotateCcw, Map as MapIcon, Star } from "lucide-react";
 import type { Stage, StageEnemy } from "@/data/route";
+import { heroBoost, type HeroProgress } from "@/data/rewards";
+import { LootModal } from "@/components/LootModal";
+import type { ClaimResult } from "@/hooks/useProgress";
 
 interface Enemy {
   id: string;
@@ -18,6 +21,8 @@ interface Enemy {
 
 interface Combatant extends Sentai {
   curHp: number;
+  level: number;
+  atkBonus: number;
 }
 
 type LogEntry = { id: number; text: string; tone: "ally" | "enemy" | "info" | "win" };
@@ -45,19 +50,45 @@ const toEnemies = (list: StageEnemy[]): Enemy[] =>
 
 interface Props {
   stage?: Stage | null;
-  onVictory?: (stageId: number) => void;
+  heroes?: Record<SentaiId, HeroProgress>;
+  onVictory?: (stageId: number) => ClaimResult;
   onExit?: () => void;
 }
 
-export const BattleView = ({ stage, onVictory, onExit }: Props) => {
+const buildTeam = (heroes?: Record<SentaiId, HeroProgress>): Combatant[] =>
+  SENTAIS.map((s) => {
+    const level = heroes?.[s.id]?.level ?? 1;
+    const { hpBonus, atkBonus } = heroBoost(level);
+    const maxHp = s.hp + hpBonus;
+    return { ...s, hp: maxHp, curHp: maxHp, level, atkBonus };
+  });
+
+export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
   const initialEnemies = useMemo(
     () => toEnemies(stage?.enemies ?? DEFAULT_ENEMIES),
     [stage?.id]
   );
 
-  const [team, setTeam] = useState<Combatant[]>(() =>
-    SENTAIS.map((s) => ({ ...s, curHp: s.hp }))
-  );
+  const [team, setTeam] = useState<Combatant[]>(() => buildTeam(heroes));
+  const [enemies, setEnemies] = useState<Enemy[]>(initialEnemies);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const [targetId, setTargetId] = useState<string | null>(initialEnemies[0]?.id ?? null);
+  const [log, setLog] = useState<LogEntry[]>([
+    {
+      id: 0,
+      text: stage
+        ? `Fase ${stage.id} · ${stage.name}. Os Sentais se posicionam!`
+        : "A rota desperta. Os Sentais se posicionam!",
+      tone: "info",
+    },
+  ]);
+  const [hitId, setHitId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [outcome, setOutcome] = useState<"win" | "lose" | null>(null);
+  const [loot, setLoot] = useState<ClaimResult | null>(null);
+  const victoryReportedRef = useRef(false);
+  const logRef = useRef<HTMLDivElement>(null);
+  const idRef = useRef(1);
   const [enemies, setEnemies] = useState<Enemy[]>(initialEnemies);
   const [activeIdx, setActiveIdx] = useState(0);
   const [targetId, setTargetId] = useState<string | null>(initialEnemies[0]?.id ?? null);
