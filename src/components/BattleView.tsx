@@ -522,6 +522,16 @@ export const BattleView = ({ stage, heroes, onVictory, onExit }: Props) => {
           <p className="py-4 text-center text-sm text-muted-foreground">Processando turno...</p>
         )}
       </div>
+
+      {loot && (
+        <LootModal
+          result={loot}
+          stageName={stage ? `Fase ${stage.id} · ${stage.name}` : "Combate Livre"}
+          onClose={() => setLoot(null)}
+          onContinue={onExit ? () => { setLoot(null); onExit(); } : undefined}
+          onReplay={() => { setLoot(null); reset(); }}
+        />
+      )}
     </section>
   );
 };
